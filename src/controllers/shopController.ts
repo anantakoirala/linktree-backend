@@ -24,6 +24,7 @@ export const fetchOg = async (
       $('meta[name="og:image"]').attr("content") ||
       "No image";
 
+    console.log("ogTitle", ogTitle);
     res.json({ ogTitle, ogImage });
   } catch (error) {
     next(error);

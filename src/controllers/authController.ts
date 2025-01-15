@@ -4,6 +4,7 @@ import { authToken, refreshtToken } from "../utils/getSignedToken";
 import { generateCookie } from "../utils/generateCookie";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "../models/User";
+import { getBaseUrl } from "../utils/getBaseUrl";
 export const login = async (
   req: Request,
   res: Response,
@@ -88,12 +89,18 @@ export const generateRefreshToken = async (
 };
 
 export const me = async (req: Request, res: Response) => {
-  const user = await User.findById(req.userId, "name");
+  const loggedInUser = await User.findById(req.userId).select(
+    "username email image name theme"
+  );
 
   // const user = await User.findById(req.userId);
-  if (!user) {
+  if (!loggedInUser) {
     return res.status(401).json({ success: false, message: "Unauthorized" });
   }
+  const user = {
+    ...loggedInUser.toObject(),
+    image: getBaseUrl(req, `/static/${loggedInUser.image}`),
+  };
   return res.status(200).json({ message: "succces", user });
 };
 
