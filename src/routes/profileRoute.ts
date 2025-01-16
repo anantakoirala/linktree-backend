@@ -1,5 +1,6 @@
 import express, { Response, Request } from "express";
 import {
+  previewDetails,
   updateTheme,
   uploadProfileImage,
 } from "../controllers/profileController";
@@ -24,5 +25,6 @@ const router = express.Router();
 
 router.post("/add", authMiddleware, upload.single("file"), uploadProfileImage);
 router.post("/updateTheme", authMiddleware, updateTheme);
+router.get("/preview-detail/:username", previewDetails);
 
 export default router;

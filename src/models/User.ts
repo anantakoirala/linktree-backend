@@ -11,18 +11,21 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: [true, "Please provide the password"] },
   image: { type: String, required: false },
   profile_title: { type: String, required: false },
+  bio: { type: String, required: false },
   theme: {
-    type: String,
-    default: JSON.stringify({
+    type: Object,
+    default: {
       id: 2,
       color: "bg-[#000957]", // Deep Blue
       text: "text-white", // White text for contrast
+      shopBox: "rounded-md",
       name: "Blue Horizon",
       linkStyle: "rounded-md", // Rounded link style
       boxColor: "bg-[#344CB7]", // Lighter Blue
+      hover: "",
       embosedBox: true,
       embosedBoxColor: "bg-[#FFEB00]", // Yellow for embossed effect
-    }),
+    },
   },
 });
 

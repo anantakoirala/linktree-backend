@@ -3,6 +3,8 @@ import User from "../models/User";
 import path from "path";
 import fs from "fs";
 import { getBaseUrl } from "../utils/getBaseUrl";
+import Links from "../models/Links";
+import Product from "../models/Product";
 
 export const uploadProfileImage = async (
   req: Request,
@@ -17,7 +19,6 @@ export const uploadProfileImage = async (
     }
 
     const fileName = req.file.originalname;
-    console.log("orignal url", req.get("host"));
 
     if (req.userId !== _id) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -31,6 +32,9 @@ export const uploadProfileImage = async (
 
     const user = {
       ...updatedUser?.toObject(),
+      profile_title: updatedUser?.profile_title
+        ? updatedUser.profile_title
+        : updatedUser?.username,
       image: updatedUser?.image
         ? getBaseUrl(req, `/static/${updatedUser?.image}`)
         : "",
@@ -62,27 +66,70 @@ export const updateTheme = async (
   next: NextFunction
 ) => {
   try {
-    const { theme } = req.body;
-    console.log("theme", theme);
+    const { field, value } = req.body;
+
     if (!req.userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
+
+    const updateData = { [field]: value };
+
     const result = await User.updateOne(
       { _id: req.userId },
-      { $set: { theme: theme } }
+      { $set: updateData }
     );
 
     const updatedUser = await User.findOne({ _id: req.userId });
     const user = {
       ...updatedUser?.toObject(),
+      profile_title: updatedUser?.profile_title
+        ? updatedUser.profile_title
+        : updatedUser?.username,
       image: updatedUser?.image
         ? getBaseUrl(req, `/static/${updatedUser?.image}`)
         : "",
     };
+
     res.status(200).json({
       success: true,
-      message: "Theme Updated successfully",
+      message: `${field} updated successfully`,
       user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const previewDetails = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { username } = req.params;
+    console.log("username", username);
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const userLinks = await Links.find({ owner: user._id });
+    const userProducts = await Product.find({ owner: user._id });
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        image: user.image ? getBaseUrl(req, `/static/${user?.image}`) : "",
+        profile_title: user.profile_title ? user.profile_title : user.username,
+        theme: user.theme,
+      },
+      links: userLinks,
+      userProducts,
     });
   } catch (error) {
     next(error);

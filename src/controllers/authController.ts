@@ -35,8 +35,27 @@ export const register = async (
 ) => {
   try {
     const body = req.body;
+    const checkUniqueUser = await User.findOne({
+      $or: [
+        { username: body.username }, // Check if the username exists
+        { email: body.email }, // Check if the email exists
+      ],
+    });
+    if (checkUniqueUser) {
+      const isUsernameTaken = checkUniqueUser.username === body.username;
+      const isEmailTaken = checkUniqueUser.email === body.email;
+
+      return res.status(409).json({
+        success: false,
+        message: isUsernameTaken
+          ? "Username already exists"
+          : "Email already exists",
+      });
+    }
+
+    console.log("body", body);
     const newUser = await User.create(body);
-    console.log("newUser", newUser);
+
     return res
       .status(200)
       .json({ success: true, message: "registered successfully" });
@@ -90,7 +109,7 @@ export const generateRefreshToken = async (
 
 export const me = async (req: Request, res: Response) => {
   const loggedInUser = await User.findById(req.userId).select(
-    "username email image name theme"
+    "username email image name theme profile_title bio"
   );
 
   // const user = await User.findById(req.userId);
@@ -99,8 +118,12 @@ export const me = async (req: Request, res: Response) => {
   }
   const user = {
     ...loggedInUser.toObject(),
+    profile_title: loggedInUser?.profile_title
+      ? loggedInUser.profile_title
+      : loggedInUser?.username,
     image: getBaseUrl(req, `/static/${loggedInUser.image}`),
   };
+
   return res.status(200).json({ message: "succces", user });
 };
 
