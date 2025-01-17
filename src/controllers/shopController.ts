@@ -41,11 +41,12 @@ export const saveProduct = async (
     if (!req.userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
-    const { ogTitle, ogImage } = req.body;
+    const { ogTitle, ogImage, url } = req.body;
     const product = await Product.create({
       name: ogTitle,
       image: ogImage,
       owner: req.userId,
+      url,
     });
     return res.status(200).json({ success: true });
   } catch (error) {
@@ -63,7 +64,7 @@ export const getAllProducts = async (
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
     const userProducts = await Product.find({ owner: req.userId }).select(
-      "name image publish"
+      "name image publish url price"
     );
 
     const products = userProducts.map((product) => ({
@@ -71,6 +72,8 @@ export const getAllProducts = async (
       name: product.name,
       image: product.image ? checkUrlImage(req, product.image) : "",
       publish: product.publish,
+      url: product.url,
+      price: product.price,
     }));
     return res.status(200).json({ success: true, products });
   } catch (error) {
@@ -121,8 +124,7 @@ export const changeProductStatus = async (
   try {
     const { productId } = req.params;
     const { status } = req.body;
-    console.log("status", req.body);
-    console.log("productId", productId);
+
     if (!req.userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
@@ -152,6 +154,55 @@ export const changeProductStatus = async (
     return res
       .status(200)
       .json({ success: true, message: "Status successfully updated" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { title, price, url } = req.body;
+    console.log("body", typeof price);
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const { productId } = req.params;
+    const availabilityOfProduct = await Product.findOne({
+      owner: req.userId,
+      _id: productId,
+    });
+    let image = "";
+    if (req.file) {
+      image = req.file.originalname;
+    }
+    if (!availabilityOfProduct) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+    const updateData: { name: any; price: any; url: any; image?: string } = {
+      name: title,
+      price: price,
+      url: url,
+    };
+
+    if (req.file) {
+      updateData.image = req.file.originalname;
+    }
+    const product = await Product.findByIdAndUpdate(
+      productId, // Find by ID
+      { $set: updateData },
+      { new: true }
+    );
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Product updated successfully" });
   } catch (error) {
     next(error);
   }

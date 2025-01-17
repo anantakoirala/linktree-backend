@@ -121,7 +121,9 @@ export const me = async (req: Request, res: Response) => {
     profile_title: loggedInUser?.profile_title
       ? loggedInUser.profile_title
       : loggedInUser?.username,
-    image: getBaseUrl(req, `/static/${loggedInUser.image}`),
+    image: loggedInUser?.image
+      ? getBaseUrl(req, `/static/${loggedInUser?.image}`)
+      : "",
   };
 
   return res.status(200).json({ message: "succces", user });

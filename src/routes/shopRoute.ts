@@ -5,6 +5,7 @@ import {
   getAllProducts,
   saveCustomProduct,
   saveProduct,
+  updateProduct,
 } from "../controllers/shopController";
 import { authMiddleware } from "../middleware/authMiddleware";
 import multer from "multer";
@@ -42,6 +43,13 @@ router.post(
   authMiddleware,
   upload.single("file"),
   saveCustomProduct
+);
+
+router.patch(
+  "/update-product/:productId",
+  authMiddleware,
+  upload.single("file"),
+  updateProduct
 );
 
 export default router;

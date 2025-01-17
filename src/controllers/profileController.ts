@@ -117,6 +117,14 @@ export const previewDetails = async (
 
     const userLinks = await Links.find({ owner: user._id });
     const userProducts = await Product.find({ owner: user._id });
+    const products = userProducts.map((product) => ({
+      _id: product._id,
+      name: product.name,
+      image: product.image ? checkUrlImage(req, product.image) : "",
+      publish: product.publish,
+      url: product.url,
+      price: product.price,
+    }));
 
     return res.status(200).json({
       success: true,
@@ -129,9 +137,18 @@ export const previewDetails = async (
         theme: user.theme,
       },
       links: userLinks,
-      userProducts,
+      userProducts: products,
     });
   } catch (error) {
     next(error);
+  }
+};
+
+const checkUrlImage = (req: Request, image: string) => {
+  if (image.startsWith("http://") || image.startsWith("https://")) {
+    return image;
+  } else {
+    const imageUrl = getBaseUrl(req, `/static/${image}`);
+    return imageUrl;
   }
 };
