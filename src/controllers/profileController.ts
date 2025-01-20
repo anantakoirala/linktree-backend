@@ -5,6 +5,8 @@ import fs from "fs";
 import { getBaseUrl } from "../utils/getBaseUrl";
 import Links from "../models/Links";
 import Product from "../models/Product";
+import puppeteer from "puppeteer";
+import { generateShareProfilePic } from "../utils/generateShareProfilePicture";
 
 export const uploadProfileImage = async (
   req: Request,
@@ -23,6 +25,23 @@ export const uploadProfileImage = async (
     if (req.userId !== _id) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
+    const oldUser = await User.findOne({ _id: req.userId });
+    if (!oldUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
+    }
+    const imagePath = getBaseUrl(req, `/static/${oldUser?.image}`);
+    if (fs.existsSync(imagePath)) {
+      // Delete the file
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error("Error deleting the image:", err);
+        } else {
+          console.log("Image deleted successfully!");
+        }
+      });
+    }
     const result = await User.updateOne(
       { _id: req.userId },
       { $set: { image: req.file.filename } }
@@ -39,6 +58,19 @@ export const uploadProfileImage = async (
         ? getBaseUrl(req, `/static/${updatedUser?.image}`)
         : "",
     };
+
+    generateShareProfilePic(
+      req,
+      updatedUser?.profile_title,
+      updatedUser?.username,
+      updatedUser?.image,
+      updatedUser?.theme.shareLink_background[
+        updatedUser.theme.selectedShareLinkBackgroundIndex
+      ].background,
+      updatedUser?.theme.shareLink_background[
+        updatedUser.theme.selectedShareLinkBackgroundIndex
+      ].textColor
+    );
 
     res
       .status(200)
@@ -90,6 +122,19 @@ export const updateTheme = async (
         : "",
     };
 
+    generateShareProfilePic(
+      req,
+      updatedUser?.profile_title,
+      updatedUser?.username,
+      updatedUser?.image,
+      updatedUser?.theme.shareLink_background[
+        updatedUser.theme.selectedShareLinkBackgroundIndex
+      ].background,
+      updatedUser?.theme.shareLink_background[
+        updatedUser.theme.selectedShareLinkBackgroundIndex
+      ].textColor
+    );
+
     res.status(200).json({
       success: true,
       message: `${field} updated successfully`,
@@ -107,7 +152,7 @@ export const previewDetails = async (
 ) => {
   try {
     const { username } = req.params;
-    console.log("username", username);
+
     const user = await User.findOne({ username });
     if (!user) {
       return res
@@ -138,6 +183,7 @@ export const previewDetails = async (
       },
       links: userLinks,
       userProducts: products,
+      shareImage: getBaseUrl(req, `/static/profile/${username}.jpeg`),
     });
   } catch (error) {
     next(error);
@@ -150,5 +196,127 @@ const checkUrlImage = (req: Request, image: string) => {
   } else {
     const imageUrl = getBaseUrl(req, `/static/${image}`);
     return imageUrl;
+  }
+};
+
+export const generateImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const user = await User.findById({ _id: req.userId });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
+    }
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    const username = "ananta";
+    const bgColor = "bg-blue-600";
+    const imagePath = getBaseUrl(req, `/static/unnamed.png`);
+    await page.setContent(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Document</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+          <!-- Import the same fonts used in your Next.js project -->
+          <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Special+Elite&display=swap"
+            rel="stylesheet"
+          />
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            /* Apply the fonts to the body to match Next.js setup */
+            body {
+              font-family: "Inter", sans-serif;
+            }
+          </style>
+        </head>
+        <body class="font-[Inter]">
+          <div
+            class="w-full h-screen flex items-center justify-center bg-green-700 p-4"
+          >
+            <div class="imageDiv w-[90vw] h-96 bg-red-800 flex flex-col">
+              <div class="w-full h-[55%] flex items-center justify-center mt-5">
+                <!-- image -->
+                <span
+                  class="flex shrink-0 overflow-hidden rounded-full size-36 cursor-pointer"
+                >
+                  <img
+                    src="http://localhost:7000/static/mhOzWfVX.jpeg"
+                    class="w-full h-full object-cover"
+                    alt=""
+                  />
+                </span>
+              </div>
+              <div
+                class="w-full h-10 flex items-center justify-center text-center font-[900] text-[34px]"
+              >
+                @${user.profile_title ? user.profile_title : user.username}
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+
+    // Wait for the content to load and be rendered
+    await page.waitForSelector(".imageDiv");
+
+    // Get the element handle for 'imageDiv'
+    const imageDiv = await page.$(".imageDiv");
+
+    const buffer = await imageDiv?.screenshot({ type: "jpeg" });
+    if (buffer) {
+      // Define the path to save the image relative to the project root
+      const imagesDir = path.resolve("public", "images", "profile");
+
+      // Ensure the 'images' directory exists
+      if (!fs.existsSync(imagesDir)) {
+        fs.mkdirSync(imagesDir, { recursive: true });
+      }
+
+      // Define the path to the image
+      const imagePath = path.join(imagesDir, "/generated-image.jpg");
+
+      // Save the image to the 'public/images' folder
+      fs.writeFileSync(imagePath, buffer);
+      res.send(buffer);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMetaData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { username } = req.params;
+    console.log("username", username);
+    const user = await User.findOne({ username: username });
+    const newUser = {
+      ...user,
+      image: getBaseUrl(req, `/static/profile/${username}.jpeg`),
+    };
+    if (user) {
+      return res.status(200).json({ success: true, newUser });
+    } else {
+      return res.status(404).json({ success: false });
+    }
+  } catch (error) {
+    next(error);
   }
 };

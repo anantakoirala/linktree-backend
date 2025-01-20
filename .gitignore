@@ -4,3 +4,5 @@ node_modules
 dist
 /public/images/*
 !/public/images/.gitkeep
+/public/images/profile/*
+!/public/images/profile/.gitkeep

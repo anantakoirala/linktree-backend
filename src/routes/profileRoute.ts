@@ -1,5 +1,7 @@
 import express, { Response, Request } from "express";
 import {
+  generateImage,
+  getMetaData,
   previewDetails,
   updateTheme,
   uploadProfileImage,
@@ -25,6 +27,8 @@ const router = express.Router();
 
 router.post("/add", authMiddleware, upload.single("file"), uploadProfileImage);
 router.post("/updateTheme", authMiddleware, updateTheme);
+router.get("/generate-image", authMiddleware, generateImage);
 router.get("/preview-detail/:username", previewDetails);
+router.get("/get-metadata/:username", getMetaData);
 
 export default router;
