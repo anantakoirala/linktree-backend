@@ -104,7 +104,7 @@ export const generateShareProfilePic = async (
     });
     if (buffer) {
       // Define the path to save the image relative to the project root
-      const imagesDir = path.resolve("public", "images", "profile");
+      const imagesDir = path.resolve("public", "profile");
 
       // Ensure the 'images' directory exists
       if (!fs.existsSync(imagesDir)) {

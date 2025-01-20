@@ -26,6 +26,9 @@ app.use(
 // Serve static files from the "public" folder
 app.use("/static", express.static(path.resolve("public/images")));
 
+// Serve static files from the "public/profile" folder at the "/profile" route
+app.use("/profile", express.static(path.resolve("public/profile")));
+
 connectDB();
 app.use(cookieParser());
 app.use(express.json());

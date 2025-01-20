@@ -2,7 +2,10 @@ node_modules
 .env
 
 dist
-/public/images/profile/*
-!/public/images/profile/.gitkeep
 /public/images/*
 !/public/images/.gitkeep
+!/public/images/unnamed.png
+
+
+/public/profile/*
+!public/profile/.gitkeep

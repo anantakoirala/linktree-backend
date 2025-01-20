@@ -309,7 +309,7 @@ export const getMetaData = async (
     const user = await User.findOne({ username: username });
     const newUser = {
       ...user,
-      image: getBaseUrl(req, `/static/profile/${username}.jpeg`),
+      image: getBaseUrl(req, `/profile/${username}.jpeg`),
     };
     if (user) {
       return res.status(200).json({ success: true, newUser });
