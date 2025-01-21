@@ -98,13 +98,10 @@ export const updateTheme = async (
   next: NextFunction
 ) => {
   try {
-    const { field, value } = req.body;
-
+    const { updateData } = req.body;
     if (!req.userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
-
-    const updateData = { [field]: value };
 
     const result = await User.updateOne(
       { _id: req.userId },
@@ -137,7 +134,7 @@ export const updateTheme = async (
 
     res.status(200).json({
       success: true,
-      message: `${field} updated successfully`,
+      message: `updated successfully`,
       user,
     });
   } catch (error) {
@@ -183,7 +180,7 @@ export const previewDetails = async (
       },
       links: userLinks,
       userProducts: products,
-      shareImage: getBaseUrl(req, `/static/profile/${username}.jpeg`),
+      shareImage: getBaseUrl(req, `/profile/${username}.jpeg`),
     });
   } catch (error) {
     next(error);
@@ -279,7 +276,7 @@ export const generateImage = async (
     const buffer = await imageDiv?.screenshot({ type: "jpeg" });
     if (buffer) {
       // Define the path to save the image relative to the project root
-      const imagesDir = path.resolve("public", "images", "profile");
+      const imagesDir = path.resolve("public", "profile");
 
       // Ensure the 'images' directory exists
       if (!fs.existsSync(imagesDir)) {
