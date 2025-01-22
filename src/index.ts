@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoute";
 import linkRoutes from "./routes/linkRoute";
 import shopRoutes from "./routes/shopRoute";
 import profileRoutes from "./routes/profileRoute";
+import socialIconRoutes from "./routes/socialIconRoute";
 import errorResponse from "./middleware/errorResponse";
 import path from "path";
 import multer from "multer";
@@ -39,6 +40,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/link", linkRoutes);
 app.use("/api/v1/shop", shopRoutes);
 app.use("/api/v1/profile", profileRoutes);
+app.use("/api/v1/socialicons", socialIconRoutes);
 
 // Catch-all error handler
 app.use(errorResponse);

@@ -4,8 +4,12 @@ node_modules
 dist
 /public/images/*
 !/public/images/.gitkeep
-!/public/images/unnamed.png
+
 
 
 /public/profile/*
 !public/profile/.gitkeep
+
+/public/assets/*
+!public/assets/.gitkeep
+!/public/assets/unnamed.png

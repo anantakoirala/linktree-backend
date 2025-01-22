@@ -16,15 +16,19 @@ function errorResponse(
   res: Response,
   next: NextFunction
 ) {
-  console.error("Error:", error); // Log error for debugging purposes
+  // console.error("Error:", error.statusCode); // Log error for debugging purposes
 
   // Default error response
   let statusCode = error.statusCode || 500;
   let message = "Something went wrong!";
 
+  console.log("error name", error);
+
   // Handle MongoDB Validation Error (e.g., Mongoose)
   if (error.name === "ValidationError" && error.errors) {
+    console.log("estatus", error.statusCode);
     statusCode = 400;
+    console.log("validationero");
     message = Object.values(error.errors)
       .map((val) => val.message)
       .join(", ");

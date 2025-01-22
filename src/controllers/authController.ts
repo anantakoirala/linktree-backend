@@ -5,6 +5,8 @@ import { generateCookie } from "../utils/generateCookie";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "../models/User";
 import { getBaseUrl } from "../utils/getBaseUrl";
+import mongoose from "mongoose";
+import Setting from "../models/setting";
 export const login = async (
   req: Request,
   res: Response,
@@ -33,33 +35,68 @@ export const register = async (
   res: Response,
   next: NextFunction
 ) => {
+  const session = await mongoose.startSession();
+  session.startTransaction(); // Start the transaction once
+
   try {
     const body = req.body;
-    const checkUniqueUser = await User.findOne({
-      $or: [
-        { username: body.username }, // Check if the username exists
-        { email: body.email }, // Check if the email exists
-      ],
-    });
+
+    // Check if the username or email already exists
+    const checkUniqueUser = await User.findOne(
+      {
+        $or: [
+          { username: body.username }, // Check if the username exists
+          { email: body.email }, // Check if the email exists
+        ],
+      },
+      null,
+      { session }
+    );
+
     if (checkUniqueUser) {
       const isUsernameTaken = checkUniqueUser.username === body.username;
       const isEmailTaken = checkUniqueUser.email === body.email;
 
+      // Abort the transaction if the user already exists
+      await session.abortTransaction();
+      session.endSession();
+
+      let message = "Conflict: ";
+      if (isUsernameTaken && isEmailTaken) {
+        message += "Username and Email already exist";
+      } else if (isUsernameTaken) {
+        message += "Username already exists";
+      } else if (isEmailTaken) {
+        message += "Email already exists";
+      }
+
       return res.status(409).json({
         success: false,
-        message: isUsernameTaken
-          ? "Username already exists"
-          : "Email already exists",
+        message,
       });
     }
 
-    console.log("body", body);
-    const newUser = await User.create(body);
+    // Create the new user within the transaction
+    const [newUser] = await User.create([body], { session });
+    console.log("newUser created:", newUser);
+
+    // Create the user setting within the transaction
+    await createSetting(newUser._id.toString(), session);
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
 
     return res
       .status(200)
       .json({ success: true, message: "registered successfully" });
   } catch (error) {
+    console.error("Error in register:", error);
+
+    // Abort the transaction in case of any error
+    await session.abortTransaction();
+    session.endSession();
+
     next(error);
   }
 };
@@ -151,4 +188,20 @@ export const logout = async (
     console.log(error);
     next(error);
   }
+};
+
+const createSetting = async (
+  user_id: string,
+  session: mongoose.ClientSession
+) => {
+  console.log("userId", user_id);
+  await Setting.create(
+    [
+      {
+        owner: user_id,
+        social_icon_position: "Topsss",
+      },
+    ],
+    { session } // Pass the session here
+  );
 };
