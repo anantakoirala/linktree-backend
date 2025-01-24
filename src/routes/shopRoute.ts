@@ -1,6 +1,7 @@
 import express from "express";
 import {
   changeProductStatus,
+  deleteProduct,
   fetchOg,
   getAllProducts,
   saveCustomProduct,
@@ -44,6 +45,8 @@ router.post(
   upload.single("file"),
   saveCustomProduct
 );
+
+router.delete("/delete-product/:productId", authMiddleware, deleteProduct);
 
 router.patch(
   "/update-product/:productId",

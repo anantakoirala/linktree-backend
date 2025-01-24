@@ -7,6 +7,8 @@ import Links from "../models/Links";
 import Product from "../models/Product";
 import puppeteer from "puppeteer";
 import { generateShareProfilePic } from "../utils/generateShareProfilePicture";
+import SocialIcon from "../models/SocialIcon";
+import Setting from "../models/setting";
 
 export const uploadProfileImage = async (
   req: Request,
@@ -158,7 +160,14 @@ export const previewDetails = async (
     }
 
     const userLinks = await Links.find({ owner: user._id });
-    const userProducts = await Product.find({ owner: user._id });
+    const userProducts = await Product.find({ owner: user._id, publish: true });
+    const userSocialLinks = await SocialIcon.find({
+      owner: user._id,
+      publish: true,
+    }).select("-owner -createdAt -updatedAt");
+    const setting = await Setting.findOne({ owner: user._id }).select(
+      "social_icon_position"
+    );
     const products = userProducts.map((product) => ({
       _id: product._id,
       name: product.name,
@@ -180,7 +189,9 @@ export const previewDetails = async (
       },
       links: userLinks,
       userProducts: products,
+      userSocialLinks,
       shareImage: getBaseUrl(req, `/profile/${username}.jpeg`),
+      setting,
     });
   } catch (error) {
     next(error);

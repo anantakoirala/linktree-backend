@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
       embosedBoxColor: "bg-[#FFEB00]",
       tabColor: "bg-blue-600",
       selectedShareLinkBackgroundIndex: 0,
+      fill: "#FFEB00",
       shareLink_background: [
         { background: "bg-[#000957]", textColor: "text-white" }, // Deep blue - white text for contrast
         { background: "bg-[#344CB7]", textColor: "text-white" }, // Light blue - white text for readability

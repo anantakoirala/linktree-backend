@@ -207,3 +207,33 @@ export const updateProduct = async (
     next(error);
   }
 };
+
+export const deleteProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { productId } = req.params;
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const result = await Product.deleteOne({
+      _id: productId,
+      owner: req.userId,
+    });
+    if (result.deletedCount > 0) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Product deleted successfully" });
+      console.log("Link deleted successfully.");
+    } else {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+  } catch (error) {
+    next(error);
+  }
+};

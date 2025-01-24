@@ -8,12 +8,12 @@ export const saveSocialIcons = async (
 ) => {
   try {
     console.log("body", req.body);
-    const { name, value } = req.body;
+    const { name, value, displayName } = req.body;
     if (!req.userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    await SocialIcon.create({ name, value, owner: req.userId });
+    await SocialIcon.create({ name, value, displayName, owner: req.userId });
     return res
       .status(200)
       .json({ success: true, message: "Social icon saved successfully" });
@@ -130,7 +130,7 @@ export const updateSocialIcon = async (
 
     const result = await SocialIcon.findByIdAndUpdate(
       isSocialIconAvailable._id, // Find by ID
-      { $set: { value: data.value } },
+      { $set: { value: data.value, displayName: data.displayName } },
       { new: true }
     );
     if (!result) {
