@@ -19,7 +19,7 @@ export const generateShareProfilePic = async (
     await page.setViewport({ width: 1200, height: 630 });
 
     const imagePath = getBaseUrl(req, `/static/${image}`);
-    console.log("imagePath", backgroundColor);
+
     // Check if the file exists
     const image_path = path.resolve(
       "public",

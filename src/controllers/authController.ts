@@ -78,7 +78,6 @@ export const register = async (
 
     // Create the new user within the transaction
     const [newUser] = await User.create([body], { session });
-    console.log("newUser created:", newUser);
 
     // Create the user setting within the transaction
     await createSetting(newUser._id.toString(), session);
@@ -173,7 +172,6 @@ export const logout = async (
   next: NextFunction
 ) => {
   try {
-    console.log("Before clearing:", req.cookies.token);
     res.clearCookie("token");
     // res.clearCookie("token", {
     //   path: "/",
@@ -195,7 +193,6 @@ const createSetting = async (
   user_id: string,
   session: mongoose.ClientSession
 ) => {
-  console.log("userId", user_id);
   await Setting.create(
     [
       {

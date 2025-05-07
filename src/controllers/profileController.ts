@@ -160,6 +160,13 @@ export const previewDetails = async (
     }
 
     const userLinks = await Links.find({ owner: user._id });
+    const modifiedLinks = userLinks.map((link) => ({
+      _id: link._id,
+      name: link.name,
+      publish: link.publish,
+      url: link.url,
+      image: link.image ? checkUrlImage(req, link.image) : "",
+    }));
     const userProducts = await Product.find({ owner: user._id, publish: true });
     const userSocialLinks = await SocialIcon.find({
       owner: user._id,
@@ -187,7 +194,7 @@ export const previewDetails = async (
         profile_title: user.profile_title ? user.profile_title : user.username,
         theme: user.theme,
       },
-      links: userLinks,
+      links: modifiedLinks,
       userProducts: products,
       userSocialLinks,
       shareImage: getBaseUrl(req, `/profile/${username}.jpeg`),
@@ -225,7 +232,7 @@ export const generateImage = async (
     }
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    const username = "ananta";
+    const username = user.username;
     const bgColor = "bg-blue-600";
     const imagePath = getBaseUrl(req, `/static/unnamed.png`);
     await page.setContent(`
@@ -313,7 +320,7 @@ export const getMetaData = async (
 ) => {
   try {
     const { username } = req.params;
-    console.log("username", username);
+
     const user = await User.findOne({ username: username });
     const newUser = {
       ...user,
