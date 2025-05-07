@@ -10,6 +10,7 @@ const linksSchema = new mongoose.Schema(
     },
     url: { type: String },
     image: { type: String, required: false },
+    publish: { type: String, default: true },
   },
   { timestamps: true }
 );

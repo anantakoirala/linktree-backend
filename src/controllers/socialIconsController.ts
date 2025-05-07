@@ -7,7 +7,6 @@ export const saveSocialIcons = async (
   next: NextFunction
 ) => {
   try {
-    console.log("body", req.body);
     const { name, value, displayName } = req.body;
     if (!req.userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });

@@ -26,7 +26,9 @@ export const editSetting = async (
       },
       { new: true }
     );
-    return res.status(200).json({ success: true, setting });
+    return res
+      .status(200)
+      .json({ success: true, setting, message: "Updated successfully" });
   } catch (error) {
     next(error);
   }

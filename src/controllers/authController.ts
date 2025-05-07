@@ -153,6 +153,7 @@ export const me = async (req: Request, res: Response) => {
   if (!loggedInUser) {
     return res.status(401).json({ success: false, message: "Unauthorized" });
   }
+
   const user = {
     ...loggedInUser.toObject(),
     profile_title: loggedInUser?.profile_title
@@ -199,7 +200,7 @@ const createSetting = async (
     [
       {
         owner: user_id,
-        social_icon_position: "Topsss",
+        social_icon_position: "Top",
       },
     ],
     { session } // Pass the session here
